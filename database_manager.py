@@ -27,7 +27,7 @@ class VectorDBManager:
 
     TABLE_NAME = "document_chunks"
     EMBEDDING_DIMENSION = 384
-    EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
     EMBEDDABLE_TYPES = frozenset(
         {"text", "markdown", "text/markdown", "table"}
     )
@@ -123,8 +123,10 @@ class VectorDBManager:
                 with connection.cursor() as cursor:
                     for batch in self._batches(records):
                         contents = [record["text"].strip() for record in batch]
+                        embedding_inputs = [f"passage: {content}" for content in contents]
+
                         embeddings = self.model.encode(
-                            contents,
+                            embedding_inputs,
                             batch_size=self.batch_size,
                             show_progress_bar=False,
                             convert_to_numpy=True,

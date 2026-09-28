@@ -4,11 +4,14 @@ from sentence_transformers import SentenceTransformer
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+model = SentenceTransformer("intfloat/multilingual-e5-small")
 
-query = "2025 yılında şirketin geliri ne kadar?"
+query = "Tüpraş'ın 2025 yılında toplam geliri ne kadardı?"
 
-query_embedding = model.encode(query)
+query_embedding = model.encode(
+    f"query: {query}",
+    normalize_embeddings=True
+)
 
 vector_string = "[" + ",".join(map(str, query_embedding.tolist())) + "]"
 
