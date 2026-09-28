@@ -1,4 +1,5 @@
 import os
+import re
 
 import psycopg2
 import torch
@@ -60,6 +61,8 @@ class FinancialRetriever:
     ):
         query_vector = self._embed_query(query)
 
+        lexical_query = self._build_lexical_query(query)
+
         sql = """
         WITH vector_results AS (
             SELECT
@@ -78,7 +81,7 @@ class FinancialRetriever:
                 ROW_NUMBER() OVER (
                     ORDER BY ts_rank_cd(
                         to_tsvector('simple', content),
-                        websearch_to_tsquery('simple', %s)
+                        to_tsquery('simple', %s)
                     ) DESC
                 ) AS text_rank
             FROM document_chunks
@@ -139,9 +142,9 @@ class FinancialRetriever:
                     (
                         query_vector,
                         query_vector,
-                        query,
-                        query,
-                        query,
+                        lexical_query,
+                        lexical_query,
+                        lexical_query,
                         candidate_limit,
                     ),
                 )
@@ -212,3 +215,47 @@ class FinancialRetriever:
             )
 
         return results
+
+    def _build_lexical_query(self, query: str) -> str:
+        query_lower = query.lower()
+
+        groups = []
+
+        # Şirket
+        if "tüpraş" in query_lower:
+            groups.append("tüpraş")
+
+        # Yıl
+        import re
+
+        years = re.findall(r"\b20\d{2}\b", query_lower)
+
+        for year in years:
+            groups.append(year)
+
+        # Finansal kavramlar
+        if "gelir" in query_lower or "ciro" in query_lower:
+            groups.append("(gelir | ciro | cirosu | hasılat | satış)")
+
+        if "kâr" in query_lower or "kar" in query_lower:
+            groups.append("(kâr | kar | kazanç)")
+
+        if "favök" in query_lower or "favok" in query_lower:
+            groups.append("(favök | favok | ebitda)")
+
+        if "borç" in query_lower:
+            groups.append("(borç | borçlanma | yükümlülük)")
+
+        # Hiçbir özel pattern yakalanmazsa raw query yerine
+        # kelimeleri OR ile gevşek şekilde ara.
+        if not groups:
+            words = re.findall(r"\w+", query_lower)
+
+            if words:
+                groups.append(
+                    "(" + " | ".join(words) + ")"
+                )
+
+        return " & ".join(groups)
+
+        
