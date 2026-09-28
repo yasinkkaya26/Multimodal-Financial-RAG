@@ -1,3 +1,11 @@
 python-dotenv
 langchain-text-splitters
 llama-parse
+pgvector
+psycopg2-binary
+sentence-transformers
+torch
+psycopg2-binary
+python-dotenv
+pgvector
+sentence-transformers

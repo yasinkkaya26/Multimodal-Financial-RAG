@@ -1,0 +1,16 @@
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: financial_rag_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: rag_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
