@@ -62,6 +62,7 @@ class FinancialRetriever:
         query_vector = self._embed_query(query)
 
         lexical_query = self._build_lexical_query(query)
+        print("lexical query:", lexical_query)
 
         sql = """
         WITH vector_results AS (
@@ -87,11 +88,11 @@ class FinancialRetriever:
             FROM document_chunks
             WHERE
                 to_tsvector('simple', content)
-                @@ websearch_to_tsquery('simple', %s)
+                @@ to_tsquery('simple', %s)
             ORDER BY
                 ts_rank_cd(
                     to_tsvector('simple', content),
-                    websearch_to_tsquery('simple', %s)
+                    to_tsquery('simple', %s)
                 ) DESC
             LIMIT 30
         ),
